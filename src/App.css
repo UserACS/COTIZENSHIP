@@ -1,0 +1,111 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Login form styles */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f8fb;
+}
+
+.login-form {
+  background: white;
+  padding: 28px 32px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form h2 {
+  margin: 0 0 12px 0;
+  color: #222;
+  text-align: center;
+}
+
+.login-label {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.login-input {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #dfe6ef;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.login-button {
+  margin-top: 16px;
+  padding: 10px 12px;
+  background: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.login-message {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.login-message.success {
+  background: #e6f4ea;
+  color: #1b5e20;
+}
+
+.login-message.error {
+  background: #fdecea;
+  color: #b00020;
+}

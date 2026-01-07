@@ -1,0 +1,57 @@
+/* === Cotisations Member === */
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.search-bar input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #dfe6ef;
+  font-size: 14px;
+}
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eef1f6;
+  text-align: left;
+  font-size: 14px;
+}
+
+.styled-table th {
+  background: #f6f8fb;
+  font-weight: 600;
+}
+
+.styled-table tr:hover {
+  background: #f9fbff;
+}
+
+.submit-box {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e9f2;
+}
+
+.submit-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #dfe6ef;
+  margin-bottom: 10px;
+}
+
+.success-text {
+  margin-top: 8px;
+  color: #1b5e20;
+  font-size: 14px;
+}

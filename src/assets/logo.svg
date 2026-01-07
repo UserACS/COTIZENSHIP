@@ -1,0 +1,26 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cercle principal avec gradient -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="45" fill="url(#gradient)" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
+  
+  <!-- Cercles secondaires connectés (représentant les membres) -->
+  <circle cx="40" cy="40" r="6" fill="#ffffff" opacity="0.8"/>
+  <circle cx="80" cy="40" r="6" fill="#ffffff" opacity="0.8"/>
+  <circle cx="60" cy="85" r="6" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- Lignes de connexion fluides -->
+  <path d="M46 40 Q60 50 74 40" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <path d="M46 40 Q60 65 60 79" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <path d="M74 40 Q60 65 60 79" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+  
+  <!-- Texte "Cotizenship" en arc intégré -->
+  <path id="textPath" d="M 20 60 A 40 40 0 0 1 100 60" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="12" fill="#ffffff" font-weight="bold" opacity="0.9">
+    <textPath href="#textPath" startOffset="50%" text-anchor="middle">Cotizenship</textPath>
+  </text>
+</svg>
