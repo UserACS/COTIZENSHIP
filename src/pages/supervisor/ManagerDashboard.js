@@ -4,6 +4,7 @@ import DashboardLayout from "../../components/DashboardLayout"
 import { getMyProfile } from "../../api"
 import "../../styles/dashboard.css"
 import "../../styles/managerDashboard.css"
+
 import {
   getManagerDashboard,
   getManagerCotisationsHistory,
@@ -17,6 +18,9 @@ import {
 } from "../../api"
 
 export default function ManagerDashboard() {
+  const navigate = useNavigate()
+  const [activeNav, setActiveNav] = useState("home")
+
   const [supervisorProfile, setSupervisorProfile] = useState(null)
   const [allCotisations, setAllCotisations] = useState([]) // 🔥 IMPORTANT
   const [pending, setPending] = useState([])
@@ -29,14 +33,48 @@ export default function ManagerDashboard() {
   const [to, setTo] = useState("")
   const [selectedMemberId, setSelectedMemberId] = useState("")
   const [hasFilters, setHasFilters] = useState(false)
+  
+ // 🔹 Stats dashboard
+  const [stats, setStats] = useState({
+    totalContributions: 0,
+    totalCommissions: 0,
+    totalNetAmount: 0,
+    totalCommitteeShare: 0,
+    totalManagerShare: 0,
+    totalAdminShare: 0,
+    memberCount: 0,
+  })
 
-  const navigate = useNavigate()
-  const [activeNav, setActiveNav] = useState("home")
+  // ---------------- UTILS ----------------
 
+  const normalizeStatus = (cot) => {
+    const raw = cot.status ?? cot.etat
+    if (!raw) return "pending"
+    const s = String(raw).toLowerCase()
+    if (s === "valide" || s === "validated") return "validated"
+    if (s === "rejete" || s === "rejected") return "rejected"
+    return "pending"
+  }
+
+  const formatDate = (date) => {
+    const d = parseDate(date)
+    return d ? d.toLocaleDateString("fr-FR") : "-"
+  }
+
+  const formatAmount = (amount) => {
+    const num = parseFloat(amount) || 0
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "XOF",
+    }).format(num)
+  }
+  
   // Initialize: load profile, pending, and members
   useEffect(() => {
     const init = async () => {
       try {
+        setLoading(true)
+
         const profile = await getMyProfile()
         setSupervisorProfile(profile)
 
@@ -49,14 +87,20 @@ export default function ManagerDashboard() {
         // 🔥 API QUI RENVOIE LE JSON DU SWAGGER
         const dashboardData = await getManagerDashboard()
 
-        const flattened =
-          dashboardData?.memberStats?.flatMap(ms =>
-            (ms.contributions || []).map(c => ({
-              ...c,
-              memberId: ms.memberId,
-            }))
-          ) || []
+        // Extract statistics
+        if (dashboardData) {
+          setStats({
+            totalContributions: dashboardData.totalContributions || 0,
+            totalCommissions: dashboardData.totalCommissions || 0,
+            totalNetAmount: dashboardData.totalNetAmount || 0,
+            totalCommitteeShare: dashboardData.totalCommitteeShare || 0,
+            totalManagerShare: dashboardData.totalManagerShare || 0,
+            totalAdminShare: dashboardData.totalAdminShare || 0,
+            memberCount: dashboardData.memberCount || 0,
+          })
+        }
 
+        const flattened = await getManagerCotisationsHistory()
         setAllCotisations(flattened)
         setList(flattened)
       } catch (err) {
@@ -92,6 +136,7 @@ export default function ManagerDashboard() {
     },
   }
 
+    // ---------------- FILTERS ----------------
     const handleFilterPeriod = async () => {
     if (!from && !to) {
       setError("Veuillez sélectionner une période")
@@ -101,11 +146,7 @@ export default function ManagerDashboard() {
       setError("")
       setTableLoading(true)
       const data = await getManagerDashboardByPeriod(from, to)
-
-      const flattened =
-        data?.memberStats?.flatMap(ms => ms.contributions || []) || []
-
-      setList(flattened)
+      setList(Array.isArray(data) ? data : [])
       setHasFilters(true)
     } catch (err) {
       setError("Erreur recherche période")
@@ -115,7 +156,6 @@ export default function ManagerDashboard() {
       setTableLoading(false)
     }
   }
-
 
   const handleMemberSelect = async () => {
     if (!selectedMemberId.trim()) {
@@ -147,6 +187,7 @@ export default function ManagerDashboard() {
     setList(allCotisations) // 🔥
   }
 
+  // ---------------- ACTIONS ----------------
   const handleValidate = async (id) => {
     try {
       await validateCotisation(id)
@@ -177,19 +218,6 @@ export default function ManagerDashboard() {
     }
   }
 
-  const formatDate = (date) => {
-    const d = parseDate(date)
-    return d ? d.toLocaleDateString("fr-FR") : "-"
-  }
-
-  const formatAmount = (amount) => {
-    const num = parseFloat(amount) || 0
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "XOF",
-    }).format(num)
-  }
-
   // Show loading screen while initializing
   if (loading) {
     return (
@@ -207,6 +235,7 @@ export default function ManagerDashboard() {
     supervisorProfile?.committee?.libelle ||
     "Mon Comité"
 
+   // ---------------- RENDER ----------------
   return (
     <DashboardLayout {...dashboardProps}>
       <div className="content-left">
@@ -222,6 +251,74 @@ export default function ManagerDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Statistics Cards */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Cotisations</div>
+            <div className="stat-value">{formatAmount(stats.totalContributions)}</div>
+            <div className="stat-subtitle">{stats.memberCount} membre(s)</div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Commissions</div>
+            <div className="stat-value">{formatAmount(stats.totalCommissions)}</div>
+            <div className="stat-subtitle">Frais appliqués</div>
+          </div>
+
+          <div className="stat-card accent">
+            <div className="stat-label">Cotisations Nettes</div>
+            <div className="stat-label">Net comité</div><div className="stat-value accent-value">{formatAmount(stats.totalNetAmount)}</div>
+            <div className="stat-subtitle">Après commissions</div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Cotisations En Attente</div>
+            <div className="stat-value">{pending.length}</div>
+            <div className="stat-subtitle">À valider</div>
+          </div>
+        </div>
+
+       {/* Distribution Card */}
+        <div className="info-card">
+          <h3 className="card-title">Distribution des Cotisations</h3>
+
+          <div className="distribution-container">
+
+            {[
+              { label: "Comité", amount: stats.totalCommitteeShare, className: "committee" },
+              { label: "Manager", amount: stats.totalManagerShare, className: "manager" },
+              { label: "Admin", amount: stats.totalAdminShare, className: "admin" },
+            ].map((item) => {
+              const pct =
+                stats.totalNetAmount > 0
+                  ? (Number(item.amount || 0) / Number(stats.totalNetAmount)) * 100
+                  : 0
+
+              return (
+                <div className="distribution-item" key={item.label}>
+                  <div className="distribution-label">
+                    <span className="distribution-name">{item.label}</span>
+                    <span className="distribution-percent">{pct.toFixed(1)}%</span>
+                  </div>
+
+                  <div className="distribution-bar">
+                    <div
+                      className={`distribution-fill ${item.className}`}
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
+                  </div>
+
+                  <div className="distribution-amount">
+                    {formatAmount(item.amount)}
+                  </div>
+                </div>
+              )
+            })}
+
+          </div>
+        </div>
+
 
         {/* Filters Section */}
         <div className="info-card">
@@ -284,7 +381,7 @@ export default function ManagerDashboard() {
 
         {/* Cotisations List */}
         <div className="info-card">
-          <h3 className="card-title">Cotisations</h3>
+          <h3 className="card-title">Historique des Cotisations</h3>
 
           {tableLoading && <p className="loading-text">Chargement des données...</p>}
 
@@ -301,42 +398,48 @@ export default function ManagerDashboard() {
           )}
 
           {!tableLoading && list.length > 0 && (
-            <table className="styled-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Membre</th>
-                  <th>Montant</th>
-                  <th>Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((cot) => (
-                  <tr key={cot.id || cot._id}>
-                    <td>{formatDate(cot.date || cot.createdAt)}</td>
-                    <td>
-                      {cot.memberName ||
-                        cot.member?.name ||
-                        cot.userName ||
-                        cot.user?.name ||
-                        "-"}
-                    </td>
-                    <td className="amount-cell">
-                      {formatAmount(cot.amount ?? cot.montant)}
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge status-${(
-                          cot.status || "pending"
-                        ).toLowerCase()}`}
-                      >
-                        {cot.status || "En attente"}
-                      </span>
-                    </td>
+            <div className="table-responsive">
+              <table className="styled-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Membre</th>
+                    <th>Montant</th>
+                    <th>Méthode</th>
+                    <th>Statut</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {list.map((cot) => (
+                    <tr key={cot.id || cot._id}>
+                      <td>{formatDate(cot.createdAt || cot.date)}</td>
+                      <td>
+                        {cot.memberName ||
+                          cot.member?.name ||
+                          cot.userName ||
+                          cot.user?.name ||
+                          "-"}
+                      </td>
+                      <td className="amount-cell">
+                        {formatAmount(cot.amount ?? cot.montant)}
+                      </td>
+                      <td className="method-cell">
+                        <span className="method-badge">{cot.method || cot.paymentMethod || cot.modePaiement || "-"}</span>
+                      </td>
+                      <td>
+                        <span
+                          className={`status-badge status-${(
+                            cot.status || "pending"
+                          ).toLowerCase()}`}
+                        >
+                          {cot.status ? cot.status.charAt(0).toUpperCase() + cot.status.slice(1) : "En attente"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
@@ -353,10 +456,10 @@ export default function ManagerDashboard() {
           {pending.map((cot) => (
             <div key={cot.id || cot._id} className="pending-item">
               {/* Photo if available */}
-              {(cot.receipt || cot.photo || cot.image) && (
+              {(cot.proofUrl || cot.receipt || cot.photo || cot.image) && (
                 <div className="pending-photo">
                   <img
-                    src={cot.receipt || cot.photo || cot.image}
+                    src={cot.proofUrl || cot.receipt || cot.photo || cot.image}
                     alt="Receipt"
                     title="Reçu/Preuve de paiement"
                   />
@@ -376,12 +479,12 @@ export default function ManagerDashboard() {
                 </span>
               </div>
 
-              <div className="pending-date">{formatDate(cot.date || cot.createdAt)}</div>
+              <div className="pending-date">{formatDate(cot.createdAt || cot.date)}</div>
 
               {/* Payment Method */}
-              {(cot.paymentMethod || cot.modePaiement || cot.method) && (
+              {(cot.method || cot.paymentMethod || cot.modePaiement) && (
                 <div className="pending-payment-method">
-                  💳 {cot.paymentMethod || cot.modePaiement || cot.method}
+                  💳 {cot.method || cot.paymentMethod || cot.modePaiement}
                 </div>
               )}
 
